@@ -8,7 +8,7 @@ import { TodoStatus } from 'src/Entity/todo.entity';
 export class TodoStatusValidationPipe implements PipeTransform {
   readonly allowedStatus: TodoStatus[] = [
     TodoStatus.OPEN,
-    TodoStatus.WIN,
+    TodoStatus.INPROGRESS,
     TodoStatus.COMPLETED,
   ];
 
