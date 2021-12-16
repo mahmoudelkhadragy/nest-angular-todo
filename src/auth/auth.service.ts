@@ -2,6 +2,7 @@ import { JwtService } from '@nestjs/jwt';
 import { RegisterUserDTO } from './../DTO/registerUser.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
@@ -22,19 +23,25 @@ export class AuthService {
     const { username, password } = registerDTO;
     const hashed = await bcrypt.hash(password, 12);
     const salt = await bcrypt.getSalt(hashed);
-    const user = new UserEntity();
-    user.username = username;
-    user.password = hashed;
-    user.salt = salt;
 
-    this.repo.create(user);
+    const foundUser = await this.repo.findOne({ username });
+    if (foundUser) {
+      return new BadRequestException({ message: 'Username already taken' });
+    } else {
+      const user = new UserEntity();
+      user.username = username;
+      user.password = hashed;
+      user.salt = salt;
 
-    try {
-      return await this.repo.save(user);
-    } catch (ex) {
-      throw new InternalServerErrorException(
-        'Something went wrong, user was not created.',
-      );
+      this.repo.create(user);
+
+      try {
+        return await this.repo.save(user);
+      } catch (ex) {
+        throw new InternalServerErrorException(
+          'Something went wrong, user was not created.',
+        );
+      }
     }
   }
 
